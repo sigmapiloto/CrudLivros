@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livros</title>
+    <link rel="stylesheet" href="usuarios.css">
+</head>
+<body>
+
+    <h2>Lista de Livros</h2>
+
+    <button class="btn-voltar" onclick="voltar()">Voltar para cadastro</button>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Ano de Publicação</th>
+                <th>Gênero</th>
+                <th>Idioma</th>
+                <th>Preço</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tabela-livros">
+            <!-- Livros serão inseridos aqui -->
+        </tbody>
+    </table>
+
+<script>
+    function carregarLivros(){
+        fetch('http://localhost:3000/livros')
+        .then(res => res.json())
+        .then(livros => {
+            const tbody = document.getElementById('tabela-livros');
+            tbody.innerHTML = "";
+            livros.forEach(livro => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${livro.id}</td>
+                    <td>${livro.titulo}</td>
+                    <td>${livro.autor}</td>
+                    <td>${livro.ano_publicacao}</td>
+                    <td>${livro.genero}</td>
+                    <td>${livro.idioma}</td>
+                    <td>R$ ${Number(livro.preco).toFixed(2)}</td>
+                    <td>
+                        <button onclick="verLivro(${livro.id})">Ver</button>
+                        <button onclick="editarLivro(${livro.id})">Editar</button>
+                        <button onclick="excluirLivro(${livro.id})">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    function verLivro(id){
+        fetch(`http://localhost:3000/livros/${id}`)
+            .then(res => res.json())
+            .then(livro => {
+                alert(
+                    `ID: ${livro.id}\nTítulo: ${livro.titulo}\nAutor: ${livro.autor}\nAno: ${livro.ano_publicacao}\nGênero: ${livro.genero}\nIdioma: ${livro.idioma}\nPreço: R$ ${Number(livro.preco).toFixed(2)}`
+                );
+            });
+    }
+
+    function editarLivro(id){
+        let titulo = prompt("Digite o título:");
+        let autor = prompt("Digite o autor:");
+        let ano_publicacao = prompt("Digite o ano de publicação:");
+        let genero = prompt("Digite o gênero:");
+        let idioma = prompt("Digite o idioma:");
+        let preco = prompt("Digite o preço:");
+
+        if(!titulo || !autor || !ano_publicacao || !genero || !idioma || !preco){
+            alert("Preencha todos os campos corretamente!");
+            return;
+        }
+
+        fetch(`http://localhost:3000/livros/${id}`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                titulo, autor, ano_publicacao, genero, idioma, preco
+            })
+        })
+        .then(() => carregarLivros());
+    }
+
+    function excluirLivro(id){
+        if(confirm("Deseja realmente excluir este livro?")){
+            fetch(`http://localhost:3000/livros/${id}`, {
+                method: "DELETE"
+            })
+            .then(() => carregarLivros());
+        }
+    }
+
+    function voltar(){
+        window.location.href = "index.html";
+    }
+
+    window.onload = carregarLivros;
+</script>
+
+</body>
+</html>
